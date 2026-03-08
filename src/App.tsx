@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 
 const IMAGES = {
@@ -7,6 +7,9 @@ const IMAGES = {
   gallery: "https://cdn.poehali.dev/projects/7943bd27-d167-499f-a07b-65cc9421d49b/files/8a60a20f-4101-4930-a784-a3955187d721.jpg",
   yoga: "https://cdn.poehali.dev/projects/7943bd27-d167-499f-a07b-65cc9421d49b/files/c6770b84-b63f-498b-8402-3562da9864ad.jpg",
   games: "https://cdn.poehali.dev/projects/7943bd27-d167-499f-a07b-65cc9421d49b/files/36fe8273-cd8a-4e91-a854-23caa0d018a4.jpg",
+  walk: "https://cdn.poehali.dev/projects/7943bd27-d167-499f-a07b-65cc9421d49b/files/3b2e907c-1ea6-481c-acce-c71694704701.jpg",
+  cinema: "https://cdn.poehali.dev/projects/7943bd27-d167-499f-a07b-65cc9421d49b/files/53d70f00-f81b-4e9b-90d9-12aee0431ec2.jpg",
+  cafeJoin: "https://cdn.poehali.dev/projects/7943bd27-d167-499f-a07b-65cc9421d49b/files/4ea0564e-049c-48ba-b0e4-2b2da88c0691.jpg",
 };
 
 const EVENTS = [
@@ -102,7 +105,7 @@ const GOAL_LABELS = {
   company: { label: "Просто компания", className: "goal-company" },
 };
 
-type Screen = "feed" | "create" | "detail" | "chats" | "profile" | "requests" | "chat-detail" | "onboarding-phone" | "onboarding-profile";
+type Screen = "welcome" | "feed" | "create" | "detail" | "chats" | "profile" | "requests" | "chat-detail" | "onboarding-phone" | "onboarding-profile";
 type Goal = "couple" | "friends" | "company";
 
 const MOCK_CHATS = [
@@ -118,7 +121,7 @@ const MOCK_MESSAGES = [
 ];
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>("onboarding-phone");
+  const [screen, setScreen] = useState<Screen>("welcome");
   const [activeTab, setActiveTab] = useState<"feed" | "chats" | "profile">("feed");
   const [activeFilter, setActiveFilter] = useState("Сегодня");
   const [selectedEvent, setSelectedEvent] = useState<typeof EVENTS[0] | null>(null);
@@ -169,6 +172,14 @@ export default function App() {
 
   return (
     <div style={{ position: "relative", height: "100%", overflow: "hidden" }}>
+
+      {/* ── WELCOME SCREEN ─────────────────────────────────── */}
+      {screen === "welcome" && (
+        <WelcomeScreen
+          onRegister={() => navigate("onboarding-profile")}
+          onLogin={() => navigate("onboarding-phone")}
+        />
+      )}
 
       {/* ── ONBOARDING: PHONE ──────────────────────────────── */}
       {screen === "onboarding-phone" && (
@@ -880,6 +891,245 @@ export default function App() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+const WELCOME_SLIDES = [
+  { img: "https://cdn.poehali.dev/projects/7943bd27-d167-499f-a07b-65cc9421d49b/files/36fe8273-cd8a-4e91-a854-23caa0d018a4.jpg", label: "Настолки с новыми людьми" },
+  { img: "https://cdn.poehali.dev/projects/7943bd27-d167-499f-a07b-65cc9421d49b/files/3b2e907c-1ea6-481c-acce-c71694704701.jpg", label: "Прогулки в парке" },
+  { img: "https://cdn.poehali.dev/projects/7943bd27-d167-499f-a07b-65cc9421d49b/files/53d70f00-f81b-4e9b-90d9-12aee0431ec2.jpg", label: "Кино в хорошей компании" },
+  { img: "https://cdn.poehali.dev/projects/7943bd27-d167-499f-a07b-65cc9421d49b/files/4ea0564e-049c-48ba-b0e4-2b2da88c0691.jpg", label: "Случайные встречи за кофе" },
+  { img: "https://cdn.poehali.dev/projects/7943bd27-d167-499f-a07b-65cc9421d49b/files/31a90bea-97a7-482c-bf32-30cce5733e0e.jpg", label: "Пикники в солнечный день" },
+];
+
+function WelcomeScreen({ onRegister, onLogin }: { onRegister: () => void; onLogin: () => void }) {
+  const [slide, setSlide] = useState(0);
+  const [visible, setVisible] = useState(false);
+  const [imgFade, setImgFade] = useState(true);
+
+  useEffect(() => {
+    const t = setTimeout(() => setVisible(true), 80);
+    return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setImgFade(false);
+      setTimeout(() => {
+        setSlide(s => (s + 1) % WELCOME_SLIDES.length);
+        setImgFade(true);
+      }, 500);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="app-screen" style={{ position: "relative", overflow: "hidden" }}>
+      {/* Slideshow background */}
+      <div style={{ position: "absolute", inset: 0 }}>
+        {WELCOME_SLIDES.map((s, i) => (
+          <img
+            key={s.img}
+            src={s.img}
+            alt=""
+            style={{
+              position: "absolute", inset: 0,
+              width: "100%", height: "100%",
+              objectFit: "cover",
+              opacity: i === slide ? (imgFade ? 1 : 0) : 0,
+              transition: "opacity 0.7s ease-in-out",
+              filter: "brightness(0.75) saturate(1.1)",
+            }}
+          />
+        ))}
+        {/* Gradient overlay */}
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.15) 35%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0.82) 100%)",
+        }} />
+        {/* Noise texture */}
+        <div style={{
+          position: "absolute", inset: 0,
+          backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E\")",
+          opacity: 0.5,
+          pointerEvents: "none",
+        }} />
+      </div>
+
+      {/* Content */}
+      <div style={{
+        position: "relative", zIndex: 1,
+        display: "flex", flexDirection: "column",
+        height: "100%", padding: "0 28px",
+      }}>
+        {/* Top: logo area */}
+        <div style={{
+          flex: 1,
+          display: "flex", flexDirection: "column",
+          alignItems: "center", justifyContent: "center",
+          opacity: visible ? 1 : 0,
+          transform: visible ? "translateY(0)" : "translateY(20px)",
+          transition: "opacity 0.7s ease-out, transform 0.7s ease-out",
+        }}>
+          {/* Logo mark */}
+          <div style={{
+            width: 72, height: 72,
+            borderRadius: 24,
+            background: "rgba(255,255,255,0.15)",
+            backdropFilter: "blur(16px)",
+            border: "1.5px solid rgba(255,255,255,0.3)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 34,
+            marginBottom: 20,
+            boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
+          }}>
+            ☕
+          </div>
+
+          {/* App name */}
+          <h1 style={{
+            fontFamily: "'Montserrat', sans-serif",
+            fontSize: 48,
+            fontWeight: 800,
+            color: "white",
+            letterSpacing: "-1px",
+            lineHeight: 1,
+            textShadow: "0 2px 16px rgba(0,0,0,0.3)",
+            marginBottom: 12,
+          }}>
+            Повод
+          </h1>
+
+          {/* Tagline */}
+          <p style={{
+            fontFamily: "'Montserrat', sans-serif",
+            fontSize: 16,
+            fontWeight: 400,
+            color: "rgba(255,255,255,0.82)",
+            letterSpacing: "0.04em",
+            textAlign: "center",
+            lineHeight: 1.5,
+            opacity: visible ? 1 : 0,
+            transform: visible ? "translateY(0)" : "translateY(12px)",
+            transition: "opacity 0.7s ease-out 0.15s, transform 0.7s ease-out 0.15s",
+          }}>
+            Знакомства через живые дела
+          </p>
+
+          {/* Slide label pill */}
+          <div style={{
+            marginTop: 32,
+            background: "rgba(255,255,255,0.12)",
+            backdropFilter: "blur(12px)",
+            border: "1px solid rgba(255,255,255,0.2)",
+            borderRadius: 100,
+            padding: "6px 16px",
+            opacity: visible ? 1 : 0,
+            transition: "opacity 0.5s ease-out 0.3s",
+          }}>
+            <p style={{ color: "rgba(255,255,255,0.9)", fontSize: 12, fontWeight: 500, letterSpacing: "0.02em" }}>
+              {WELCOME_SLIDES[slide].label}
+            </p>
+          </div>
+        </div>
+
+        {/* Slide dots */}
+        <div style={{
+          display: "flex", justifyContent: "center", gap: 6,
+          marginBottom: 32,
+          opacity: visible ? 1 : 0,
+          transition: "opacity 0.6s ease-out 0.4s",
+        }}>
+          {WELCOME_SLIDES.map((_, i) => (
+            <div
+              key={i}
+              onClick={() => setSlide(i)}
+              style={{
+                width: i === slide ? 20 : 6,
+                height: 6,
+                borderRadius: 3,
+                background: i === slide ? "white" : "rgba(255,255,255,0.4)",
+                transition: "all 0.35s ease",
+                cursor: "pointer",
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Bottom buttons */}
+        <div style={{
+          paddingBottom: "max(32px, env(safe-area-inset-bottom))",
+          opacity: visible ? 1 : 0,
+          transform: visible ? "translateY(0)" : "translateY(24px)",
+          transition: "opacity 0.7s ease-out 0.25s, transform 0.7s ease-out 0.25s",
+        }}>
+          {/* Register button */}
+          <button
+            onClick={onRegister}
+            style={{
+              width: "100%",
+              height: 58,
+              borderRadius: 32,
+              background: "#E86A3D",
+              border: "none",
+              color: "white",
+              fontFamily: "'Montserrat', sans-serif",
+              fontSize: 18,
+              fontWeight: 700,
+              letterSpacing: "0.01em",
+              cursor: "pointer",
+              boxShadow: "0 4px 20px rgba(232,106,61,0.45), 0 1px 3px rgba(0,0,0,0.15)",
+              transition: "transform 0.15s ease, box-shadow 0.15s ease",
+              marginBottom: 12,
+              display: "block",
+            }}
+            onMouseDown={e => (e.currentTarget.style.transform = "scale(0.97)")}
+            onMouseUp={e => (e.currentTarget.style.transform = "scale(1)")}
+            onTouchStart={e => (e.currentTarget.style.transform = "scale(0.97)")}
+            onTouchEnd={e => (e.currentTarget.style.transform = "scale(1)")}
+          >
+            Зарегистрироваться
+          </button>
+
+          {/* Login button */}
+          <button
+            onClick={onLogin}
+            style={{
+              width: "100%",
+              height: 58,
+              borderRadius: 32,
+              background: "transparent",
+              border: "1.5px solid rgba(255,255,255,0.7)",
+              color: "white",
+              fontFamily: "'Montserrat', sans-serif",
+              fontSize: 18,
+              fontWeight: 400,
+              letterSpacing: "0.01em",
+              cursor: "pointer",
+              transition: "transform 0.15s ease, background 0.15s ease",
+              display: "block",
+            }}
+            onMouseDown={e => { e.currentTarget.style.transform = "scale(0.97)"; e.currentTarget.style.background = "rgba(255,255,255,0.08)"; }}
+            onMouseUp={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.background = "transparent"; }}
+            onTouchStart={e => { e.currentTarget.style.transform = "scale(0.97)"; e.currentTarget.style.background = "rgba(255,255,255,0.08)"; }}
+            onTouchEnd={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.background = "transparent"; }}
+          >
+            Войти
+          </button>
+
+          <p style={{
+            textAlign: "center",
+            color: "rgba(255,255,255,0.45)",
+            fontSize: 11,
+            marginTop: 16,
+            lineHeight: 1.5,
+          }}>
+            Продолжая, вы соглашаетесь с{" "}
+            <span style={{ textDecoration: "underline", cursor: "pointer" }}>условиями использования</span>
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
