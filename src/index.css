@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -6,159 +6,231 @@
 
 @layer base {
   :root {
-    --background: 229 53% 14%;
-    --foreground: 0 0% 100%;
-    --card: 227 60% 17%;
-    --card-foreground: 0 0% 100%;
-    --popover: 227 60% 17%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 262 67% 61%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 218 100% 62%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 227 60% 17%;
-    --muted-foreground: 215 20% 78%;
-    --accent: 227 40% 25%;
-    --accent-foreground: 0 0% 100%;
-    --success: 158 97% 36%;
-    --destructive: 0 84% 49%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 100% / 0.1;
-    --input: 0 0% 100% / 0.1;
-    --ring: 262 67% 61%;
-    --radius: 1rem;
-    --sidebar-bg: 227 51% 20%;
-
-    --dashboard-card-bg: 227 60% 17%;
-    --dashboard-card-border: 0 0% 100% / 0.1;
-    --dashboard-card-shadow: 0 0 30px rgba(117, 81, 233, 0.2);
-  }
-
-  :root.light {
-    --background: 0 0% 96%;
-    --foreground: 240 10% 3.9%;
+    --background: 40 33% 96%;
+    --foreground: 180 35% 18%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 180 35% 18%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 262 67% 61%;
+    --popover-foreground: 180 35% 18%;
+    --primary: 18 78% 57%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 218 100% 62%;
+    --secondary: 180 35% 27%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 90%;
-    --accent-foreground: 240 5.9% 10%;
-    --success: 158 97% 36%;
+    --muted: 38 25% 92%;
+    --muted-foreground: 180 15% 45%;
+    --accent: 180 35% 27%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 262 67% 61%;
-    --sidebar-bg: 0 0% 100%;
+    --border: 38 20% 85%;
+    --input: 38 20% 88%;
+    --ring: 18 78% 57%;
+    --radius: 1.25rem;
 
-    --dashboard-card-bg: 0 0% 100%;
-    --dashboard-card-border: 240 5.9% 90%;
-    --dashboard-card-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+    /* App specific */
+    --color-cream: #f5f0e8;
+    --color-ivory: #faf7f2;
+    --color-mandarin: #e86a3d;
+    --color-teal: #2d5e5e;
+    --color-teal-light: #3d7a7a;
+    --color-warm-gray: #8a8070;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
+    box-sizing: border-box;
   }
 
-  [cmdk-item],
-  [data-radix-collection-item],
-  [role="option"],
-  [role="listitem"] {
-    outline: none !important;
+  html,
+  body {
+    height: 100%;
+    overflow: hidden;
   }
 
   body {
     @apply bg-background text-foreground;
-    font-family: "Plus Jakarta Sans", sans-serif;
-    overflow-x: hidden;
+    font-family: "Montserrat", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    font-family: "Plus Jakarta Sans", sans-serif;
-    @apply text-foreground;
-  }
-
-  /* Dashboard cards адаптация */
-  .dashboard-card {
-    @apply bg-card text-card-foreground border-border;
+  #root {
+    height: 100%;
+    max-width: 430px;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+    background: var(--color-ivory);
   }
 }
 
-@keyframes pulse-glow {
-  0%,
-  100% {
+@layer components {
+  .app-screen {
+    @apply absolute inset-0 flex flex-col;
+    background: var(--color-ivory);
+  }
+
+  .btn-primary {
+    background: var(--color-mandarin);
+    color: white;
+    @apply font-semibold rounded-2xl px-6 py-3 text-sm transition-all duration-200;
+    box-shadow: 0 4px 20px rgba(232, 106, 61, 0.35);
+  }
+
+  .btn-primary:active {
+    transform: scale(0.97);
+    box-shadow: 0 2px 10px rgba(232, 106, 61, 0.25);
+  }
+
+  .btn-secondary {
+    background: var(--color-teal);
+    color: white;
+    @apply font-semibold rounded-2xl px-6 py-3 text-sm transition-all duration-200;
+  }
+
+  .btn-ghost {
+    background: rgba(45, 94, 94, 0.08);
+    color: var(--color-teal);
+    @apply font-medium rounded-2xl px-5 py-2.5 text-sm transition-all duration-200;
+  }
+
+  .card-float {
+    @apply bg-white rounded-3xl;
     box-shadow:
-      0 0 20px rgba(239, 68, 68, 0.4),
-      0 0 40px rgba(239, 68, 68, 0.2);
+      0 4px 24px rgba(45, 94, 94, 0.08),
+      0 1px 6px rgba(45, 94, 94, 0.04);
   }
-  50% {
-    box-shadow:
-      0 0 30px rgba(239, 68, 68, 0.6),
-      0 0 60px rgba(239, 68, 68, 0.3);
+
+  .chip {
+    @apply text-xs font-medium px-3 py-1.5 rounded-full transition-all duration-200;
+  }
+
+  .chip-active {
+    background: var(--color-teal);
+    color: white;
+  }
+
+  .chip-inactive {
+    background: rgba(45, 94, 94, 0.08);
+    color: var(--color-teal);
+  }
+
+  .tab-bar {
+    background: var(--color-ivory);
+    border-top: 1px solid rgba(45, 94, 94, 0.08);
+    @apply flex items-center justify-around pb-safe pt-3 px-2;
+  }
+
+  .tab-item {
+    @apply flex flex-col items-center gap-0.5 px-3 py-1 rounded-2xl transition-all duration-200;
+  }
+
+  .tab-item.active {
+    background: rgba(232, 106, 61, 0.1);
+  }
+
+  .goal-badge {
+    @apply text-xs font-semibold px-2.5 py-1 rounded-full;
+  }
+
+  .goal-friends {
+    background: rgba(45, 94, 94, 0.12);
+    color: var(--color-teal);
+  }
+
+  .goal-couple {
+    background: rgba(232, 106, 61, 0.12);
+    color: var(--color-mandarin);
+  }
+
+  .goal-company {
+    background: rgba(139, 128, 112, 0.15);
+    color: var(--color-warm-gray);
   }
 }
 
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
+@layer utilities {
+  .pb-safe {
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
+  .pt-safe {
+    padding-top: max(0px, env(safe-area-inset-top));
+  }
 
-::-webkit-scrollbar-thumb {
-  background: transparent;
-  border-radius: 4px;
-}
+  .text-teal {
+    color: var(--color-teal);
+  }
 
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
+  .text-mandarin {
+    color: var(--color-mandarin);
+  }
 
-* {
-  scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
-}
+  .bg-cream {
+    background: var(--color-cream);
+  }
 
-/* Vertical scroll in dropdowns (Payments page) */
-[data-radix-popper-content-wrapper] .overflow-y-auto::-webkit-scrollbar,
-[cmdk-list]::-webkit-scrollbar {
-  width: 6px;
-}
+  .bg-ivory {
+    background: var(--color-ivory);
+  }
 
-[data-radix-popper-content-wrapper] .overflow-y-auto::-webkit-scrollbar-track,
-[cmdk-list]::-webkit-scrollbar-track {
-  background: transparent;
-}
+  .bg-mandarin {
+    background: var(--color-mandarin);
+  }
 
-[data-radix-popper-content-wrapper] .overflow-y-auto::-webkit-scrollbar-thumb,
-[cmdk-list]::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
-}
+  .bg-teal {
+    background: var(--color-teal);
+  }
 
-[data-radix-popper-content-wrapper]
-  .overflow-y-auto::-webkit-scrollbar-thumb:hover,
-[cmdk-list]::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.35);
-}
+  .animate-card-enter {
+    animation: cardEnter 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
 
-[data-radix-popper-content-wrapper] .overflow-y-auto,
-[cmdk-list] {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  @keyframes cardEnter {
+    from {
+      opacity: 0;
+      transform: translateY(24px) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out forwards;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.25s ease-out forwards;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .scroll-hidden {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scroll-hidden::-webkit-scrollbar {
+    display: none;
+  }
 }
