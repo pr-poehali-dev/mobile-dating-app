@@ -1,0 +1,24 @@
+{
+  "tests": [
+    {
+      "name": "Get savings list (unauthorized)",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "Unauthorized"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get saving reasons (unauthorized)",
+      "method": "GET",
+      "path": "/?endpoint=saving-reasons",
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "Unauthorized"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

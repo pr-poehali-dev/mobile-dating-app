@@ -1,0 +1,24 @@
+{
+  "tests": [
+    {
+      "name": "Test unauthorized access to categories",
+      "method": "GET",
+      "path": "/?endpoint=categories",
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "Unauthorized"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Test unauthorized access to contractors",
+      "method": "GET",
+      "path": "/?endpoint=contractors",
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "Unauthorized"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

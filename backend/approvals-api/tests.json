@@ -1,0 +1,24 @@
+{
+  "tests": [
+    {
+      "name": "Get pending approvals (unauthorized)",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "Unauthorized"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get approvers list (unauthorized)",
+      "method": "GET",
+      "path": "/?endpoint=approvers",
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "Unauthorized"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+ALTER TABLE service_balances ADD COLUMN IF NOT EXISTS description TEXT;

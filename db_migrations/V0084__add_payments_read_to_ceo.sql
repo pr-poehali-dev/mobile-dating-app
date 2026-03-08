@@ -1,0 +1,1 @@
+INSERT INTO role_permissions (role_id, permission_id) VALUES (7, 2) ON CONFLICT DO NOTHING;

@@ -1,0 +1,34 @@
+{
+  "tests": [
+    {
+      "name": "Get users list (unauthorized)",
+      "method": "GET",
+      "path": "/?endpoint=users",
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "Unauthorized"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get roles list (unauthorized)",
+      "method": "GET",
+      "path": "/?endpoint=roles",
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "Unauthorized"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get permissions list (unauthorized)",
+      "method": "GET",
+      "path": "/?endpoint=permissions",
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "Unauthorized"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

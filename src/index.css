@@ -1,0 +1,164 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 229 53% 14%;
+    --foreground: 0 0% 100%;
+    --card: 227 60% 17%;
+    --card-foreground: 0 0% 100%;
+    --popover: 227 60% 17%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 262 67% 61%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 218 100% 62%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 227 60% 17%;
+    --muted-foreground: 215 20% 78%;
+    --accent: 227 40% 25%;
+    --accent-foreground: 0 0% 100%;
+    --success: 158 97% 36%;
+    --destructive: 0 84% 49%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 100% / 0.1;
+    --input: 0 0% 100% / 0.1;
+    --ring: 262 67% 61%;
+    --radius: 1rem;
+    --sidebar-bg: 227 51% 20%;
+
+    --dashboard-card-bg: 227 60% 17%;
+    --dashboard-card-border: 0 0% 100% / 0.1;
+    --dashboard-card-shadow: 0 0 30px rgba(117, 81, 233, 0.2);
+  }
+
+  :root.light {
+    --background: 0 0% 96%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 262 67% 61%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 218 100% 62%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 90%;
+    --accent-foreground: 240 5.9% 10%;
+    --success: 158 97% 36%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 262 67% 61%;
+    --sidebar-bg: 0 0% 100%;
+
+    --dashboard-card-bg: 0 0% 100%;
+    --dashboard-card-border: 240 5.9% 90%;
+    --dashboard-card-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  [cmdk-item],
+  [data-radix-collection-item],
+  [role="option"],
+  [role="listitem"] {
+    outline: none !important;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    @apply text-foreground;
+  }
+
+  /* Dashboard cards адаптация */
+  .dashboard-card {
+    @apply bg-card text-card-foreground border-border;
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 20px rgba(239, 68, 68, 0.4),
+      0 0 40px rgba(239, 68, 68, 0.2);
+  }
+  50% {
+    box-shadow:
+      0 0 30px rgba(239, 68, 68, 0.6),
+      0 0 60px rgba(239, 68, 68, 0.3);
+  }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+/* Vertical scroll in dropdowns (Payments page) */
+[data-radix-popper-content-wrapper] .overflow-y-auto::-webkit-scrollbar,
+[cmdk-list]::-webkit-scrollbar {
+  width: 6px;
+}
+
+[data-radix-popper-content-wrapper] .overflow-y-auto::-webkit-scrollbar-track,
+[cmdk-list]::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+[data-radix-popper-content-wrapper] .overflow-y-auto::-webkit-scrollbar-thumb,
+[cmdk-list]::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+[data-radix-popper-content-wrapper]
+  .overflow-y-auto::-webkit-scrollbar-thumb:hover,
+[cmdk-list]::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+[data-radix-popper-content-wrapper] .overflow-y-auto,
+[cmdk-list] {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}

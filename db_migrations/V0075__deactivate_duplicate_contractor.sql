@@ -1,0 +1,1 @@
+UPDATE t_p61788166_html_to_frontend.contractors SET is_active = false WHERE id = 18;

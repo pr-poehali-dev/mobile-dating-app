@@ -1,0 +1,1 @@
+UPDATE payments SET status = 'draft' WHERE status = 'pending_approval';
