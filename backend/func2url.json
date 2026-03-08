@@ -1,4 +1,5 @@
 {
+  "povod-events": "https://functions.poehali.dev/d96b64ca-2040-4622-b117-56ddc9e53d3b",
   "stats-api": "https://functions.poehali.dev/284e7ddc-49e5-4735-9a3f-142ebdbf2d36",
   "tickets-api": "https://functions.poehali.dev/f24325b7-2263-433b-96eb-7e1e4702949e",
   "auth-api": "https://functions.poehali.dev/f346feb0-c417-484a-bd02-2182e85bbfdc",

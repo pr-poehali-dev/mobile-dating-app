@@ -2,6 +2,24 @@ import { useState, useEffect, useCallback } from "react";
 import Icon from "@/components/ui/icon";
 
 const API_URL = "https://functions.poehali.dev/dcc4a778-17c7-45ec-852d-e33e9dfca067";
+const EVENTS_API = "https://functions.poehali.dev/d96b64ca-2040-4622-b117-56ddc9e53d3b";
+
+const CATEGORY_EMOJIS: Record<string, string> = {
+  "Еда и напитки": "☕", "Природа": "🌿", "Искусство": "🎨",
+  "Спорт": "💪", "Игры": "🎲", "Музыка": "🎵", "Кино": "🎬",
+};
+const EVENT_CATEGORIES = ["Еда и напитки", "Природа", "Искусство", "Спорт", "Игры", "Музыка", "Кино"];
+
+function formatEventDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const timeStr = date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+  if (date.toDateString() === now.toDateString()) return `Сегодня, ${timeStr}`;
+  if (date.toDateString() === tomorrow.toDateString()) return `Завтра, ${timeStr}`;
+  return `${date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}, ${timeStr}`;
+}
 
 const IMAGES = {
   cafe: "https://cdn.poehali.dev/projects/7943bd27-d167-499f-a07b-65cc9421d49b/files/7eb6cfed-5273-4431-b132-b70f6e94f58f.jpg",
@@ -14,90 +32,7 @@ const IMAGES = {
   cafeJoin: "https://cdn.poehali.dev/projects/7943bd27-d167-499f-a07b-65cc9421d49b/files/4ea0564e-049c-48ba-b0e4-2b2da88c0691.jpg",
 };
 
-const EVENTS = [
-  {
-    id: 1,
-    image: IMAGES.cafe,
-    title: "Завтрак в любимом кафе",
-    category: "Еда и напитки",
-    categoryIcon: "Coffee",
-    creator: { name: "Маша", age: 26, avatar: "М" },
-    time: "Сегодня, 10:00",
-    place: "Кафе «Утро», Пушкина 12",
-    distance: "0.8 км",
-    maxPeople: 2,
-    joined: 0,
-    goal: "couple" as const,
-    description: "Ищу кого-то, с кем можно неспешно позавтракать, поговорить о чём угодно и выпить хороший кофе. Без суеты и спешки. Просто хорошее утро.",
-    participants: [],
-  },
-  {
-    id: 2,
-    image: IMAGES.picnic,
-    title: "Пикник в Сокольниках",
-    category: "Природа",
-    categoryIcon: "Trees",
-    creator: { name: "Дима", age: 29, avatar: "Д" },
-    time: "Завтра, 14:00",
-    place: "Парк Сокольники, главная аллея",
-    distance: "2.3 км",
-    maxPeople: 4,
-    joined: 2,
-    goal: "friends" as const,
-    description: "Беру плед, бутерброды и хорошее настроение. Буду рад компании! Можно брать друзей, собак и гитары.",
-    participants: [{ name: "Аня", avatar: "А" }, { name: "Сеня", avatar: "С" }],
-  },
-  {
-    id: 3,
-    image: IMAGES.gallery,
-    title: "Вернисаж в галерее Зотов",
-    category: "Искусство",
-    categoryIcon: "Palette",
-    creator: { name: "Оля", age: 31, avatar: "О" },
-    time: "Пятница, 19:00",
-    place: "Галерея Зотов, Ходынская 2",
-    distance: "3.1 км",
-    maxPeople: 2,
-    joined: 1,
-    goal: "couple" as const,
-    description: "Открытие новой выставки современного искусства. Хочу пойти вместе с кем-то, кому интересно обсудить работы. После — бокал вина в баре рядом.",
-    participants: [],
-  },
-  {
-    id: 4,
-    image: IMAGES.yoga,
-    title: "Утренняя йога на набережной",
-    category: "Спорт",
-    categoryIcon: "Heart",
-    creator: { name: "Катя", age: 24, avatar: "К" },
-    time: "Воскресенье, 08:30",
-    place: "Набережная Тараса Шевченко",
-    distance: "1.5 км",
-    maxPeople: 6,
-    joined: 3,
-    goal: "company" as const,
-    description: "Практикую хатха-йогу 3 года. Собираю небольшую группу для утренней практики. Уровень — начинающий и средний. Коврик желателен.",
-    participants: [{ name: "Лена", avatar: "Л" }, { name: "Юля", avatar: "Ю" }, { name: "Паша", avatar: "П" }],
-  },
-  {
-    id: 5,
-    image: IMAGES.games,
-    title: "Настолки дома",
-    category: "Игры",
-    categoryIcon: "Gamepad2",
-    creator: { name: "Артём", age: 27, avatar: "А" },
-    time: "Суббота, 17:00",
-    place: "Жилой комплекс «Авеню», Сущёвский вал",
-    distance: "4.2 км",
-    maxPeople: 5,
-    joined: 2,
-    goal: "friends" as const,
-    description: "Есть Wingspan, Catan, Dixit, Codenames. Буду рад новым игрокам! Сделаю пиццу. Опыт в настолках не обязателен.",
-    participants: [{ name: "Рома", avatar: "Р" }, { name: "Ника", avatar: "Н" }],
-  },
-];
-
-const CATEGORIES = ["Сегодня", "Завтра", "Рядом", "Еда", "Спорт", "Искусство", "Игры"];
+const CATEGORIES = ["Все", "Сегодня", "Завтра", "Еда", "Спорт", "Искусство", "Игры"];
 
 const INTERESTS = ["☕ Кофе", "🎵 Музыка", "📚 Книги", "🧘 Йога", "🎨 Искусство", "🌿 Природа", "🍕 Еда", "🎲 Игры", "🎬 Кино", "🚴 Велосипед", "✈️ Путешествия", "🐾 Животные"];
 
@@ -126,11 +61,10 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>("welcome");
   const [activeTab, setActiveTab] = useState<"feed" | "chats" | "profile">("feed");
   const [activeFilter, setActiveFilter] = useState("Сегодня");
-  const [selectedEvent, setSelectedEvent] = useState<typeof EVENTS[0] | null>(null);
-  const [selectedChat, setSelectedChat] = useState<typeof MOCK_CHATS[0] | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [selectedChat, setSelectedChat] = useState<any>(null);
   const [showRespondModal, setShowRespondModal] = useState(false);
   const [respondMessage, setRespondMessage] = useState("");
-  const [respondedEvents, setRespondedEvents] = useState<Set<number>>(new Set());
   const [chatMessage, setChatMessage] = useState("");
   const [messages, setMessages] = useState(MOCK_MESSAGES);
   const [selectedGoal, setSelectedGoal] = useState<Goal>("friends");
@@ -145,6 +79,32 @@ export default function App() {
   const [authError, setAuthError] = useState("");
   const [debugCode, setDebugCode] = useState("");
   const [appReady, setAppReady] = useState(false);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [events, setEvents] = useState<any[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [myEvents, setMyEvents] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [participatingEvents, setParticipatingEvents] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [eventDetail, setEventDetail] = useState<any>(null);
+  const [eventDetailLoading, setEventDetailLoading] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [eventResponses, setEventResponses] = useState<any[]>([]);
+  const [respondLoading, setRespondLoading] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [userProfile, setUserProfile] = useState<any>(null);
+
+  // Create event state
+  const [createTitle, setCreateTitle] = useState("");
+  const [createDescription, setCreateDescription] = useState("");
+  const [createCategory, setCreateCategory] = useState("");
+  const [createPlace, setCreatePlace] = useState("");
+  const [createDate, setCreateDate] = useState("");
+  const [createMaxPeople, setCreateMaxPeople] = useState(2);
+  const [createGoal, setCreateGoal] = useState<Goal>("friends");
+  const [createLoading, setCreateLoading] = useState("");
 
   // Check saved token on mount
   useEffect(() => {
@@ -302,13 +262,148 @@ export default function App() {
     setScreen("welcome");
   };
 
-  const handleRespond = (eventId: number) => {
-    if (respondMessage.trim()) {
-      setRespondedEvents(prev => new Set([...prev, eventId]));
-      setShowRespondModal(false);
-      setRespondMessage("");
-    }
+  const getToken = () => authToken || localStorage.getItem("povod_token") || "";
+
+  const loadFeed = async () => {
+    setEventsLoading(true);
+    try {
+      const res = await fetch(`${EVENTS_API}/feed`, { headers: { "X-Auth-Token": getToken() } });
+      const data = await res.json();
+      if (data.events) setEvents(data.events);
+    } catch { /* ignore */ }
+    setEventsLoading(false);
   };
+
+  const loadEventDetail = async (id: number) => {
+    setEventDetailLoading(true);
+    try {
+      const res = await fetch(`${EVENTS_API}/event/${id}`, { headers: { "X-Auth-Token": getToken() } });
+      const data = await res.json();
+      if (data.id) setEventDetail(data);
+    } catch { /* ignore */ }
+    setEventDetailLoading(false);
+  };
+
+  const loadMyEvents = async () => {
+    try {
+      const res = await fetch(`${EVENTS_API}/my`, { headers: { "X-Auth-Token": getToken() } });
+      const data = await res.json();
+      if (data.events) setMyEvents(data.events);
+    } catch { /* ignore */ }
+  };
+
+  const loadParticipating = async () => {
+    try {
+      const res = await fetch(`${EVENTS_API}/participating`, { headers: { "X-Auth-Token": getToken() } });
+      const data = await res.json();
+      if (data.events) setParticipatingEvents(data.events);
+    } catch { /* ignore */ }
+  };
+
+  const loadProfile = async () => {
+    try {
+      const res = await fetch(`${API_URL}/profile`, { headers: { "X-Auth-Token": getToken() } });
+      const data = await res.json();
+      if (data.id) setUserProfile(data);
+    } catch { /* ignore */ }
+  };
+
+  const loadEventResponses = async (eventId: number) => {
+    try {
+      const res = await fetch(`${EVENTS_API}/event/${eventId}/responses`, { headers: { "X-Auth-Token": getToken() } });
+      const data = await res.json();
+      if (data.responses) setEventResponses(data.responses);
+    } catch { /* ignore */ }
+  };
+
+  const handleRespond = async (eventId: number) => {
+    if (!respondMessage.trim()) return;
+    setRespondLoading(true);
+    try {
+      const res = await fetch(`${EVENTS_API}/event/${eventId}/respond`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Auth-Token": getToken() },
+        body: JSON.stringify({ message: respondMessage }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setShowRespondModal(false);
+        setRespondMessage("");
+        if (eventDetail) loadEventDetail(eventId);
+        loadFeed();
+      } else {
+        setAuthError(data.error || "Ошибка отклика");
+      }
+    } catch { setAuthError("Ошибка сети"); }
+    setRespondLoading(false);
+  };
+
+  const handleCancelResponse = async (eventId: number) => {
+    try {
+      await fetch(`${EVENTS_API}/event/${eventId}/respond`, {
+        method: "DELETE",
+        headers: { "X-Auth-Token": getToken() },
+      });
+      if (eventDetail) loadEventDetail(eventId);
+      loadFeed();
+    } catch { /* ignore */ }
+  };
+
+  const handleAcceptResponse = async (responseId: number, eventId: number) => {
+    try {
+      await fetch(`${EVENTS_API}/response/${responseId}/accept`, {
+        method: "POST",
+        headers: { "X-Auth-Token": getToken() },
+      });
+      loadEventResponses(eventId);
+      loadMyEvents();
+    } catch { /* ignore */ }
+  };
+
+  const handleRejectResponse = async (responseId: number, eventId: number) => {
+    try {
+      await fetch(`${EVENTS_API}/response/${responseId}/reject`, {
+        method: "POST",
+        headers: { "X-Auth-Token": getToken() },
+      });
+      loadEventResponses(eventId);
+    } catch { /* ignore */ }
+  };
+
+  const handleCreateEvent = async () => {
+    if (!createTitle || !createCategory || !createPlace || !createDate) {
+      setAuthError("Заполните все обязательные поля");
+      return;
+    }
+    setCreateLoading("creating");
+    try {
+      const res = await fetch(`${EVENTS_API}/create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Auth-Token": getToken() },
+        body: JSON.stringify({
+          title: createTitle, description: createDescription,
+          category: createCategory, place: createPlace,
+          event_date: createDate, max_people: createMaxPeople, goal: createGoal,
+        }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setCreateTitle(""); setCreateDescription(""); setCreateCategory("");
+        setCreatePlace(""); setCreateDate(""); setCreateMaxPeople(2); setCreateGoal("friends");
+        navigate("feed", "feed");
+        loadFeed();
+      } else {
+        setAuthError(data.error || "Ошибка создания");
+      }
+    } catch { setAuthError("Ошибка сети"); }
+    setCreateLoading("");
+  };
+
+  // Load data when switching screens
+  useEffect(() => {
+    if (screen === "feed" && getToken()) loadFeed();
+    if (screen === "profile" && getToken()) { loadMyEvents(); loadParticipating(); loadProfile(); }
+  }, [screen]);
 
   const handleSendMessage = () => {
     if (chatMessage.trim()) {
@@ -501,12 +596,9 @@ export default function App() {
           <div className="flex-shrink-0 px-5 pt-5 pb-3 flex items-center justify-between">
             <div>
               <p className="text-xs font-medium text-muted-foreground">Москва</p>
-              <h1 className="text-2xl font-bold text-teal">Повод</h1>
+              <h1 className="text-2xl font-bold text-teal">Повod</h1>
             </div>
-            <button
-              onClick={() => navigate("create")}
-              className="btn-primary flex items-center gap-2 py-2.5 px-4"
-            >
+            <button onClick={() => { setAuthError(""); navigate("create"); }} className="btn-primary flex items-center gap-2 py-2.5 px-4">
               <Icon name="Plus" size={16} />
               Создать
             </button>
@@ -515,30 +607,37 @@ export default function App() {
           <div className="flex-shrink-0 px-5 mb-3">
             <div className="flex gap-2 overflow-x-auto scroll-hidden">
               {CATEGORIES.map(c => (
-                <button
-                  key={c}
-                  onClick={() => setActiveFilter(c)}
-                  className={`chip flex-shrink-0 ${activeFilter === c ? "chip-active" : "chip-inactive"}`}
-                >
-                  {c}
-                </button>
+                <button key={c} onClick={() => setActiveFilter(c)} className={`chip flex-shrink-0 ${activeFilter === c ? "chip-active" : "chip-inactive"}`}>{c}</button>
               ))}
             </div>
           </div>
 
           <div className="flex-1 overflow-y-auto scroll-hidden px-5 pb-4 space-y-4">
-            {EVENTS.map((event, idx) => (
+            {eventsLoading && events.length === 0 && (
+              <>{[1,2,3].map(i => (
+                <div key={i} className="rounded-3xl overflow-hidden animate-pulse" style={{ height: 280, background: "rgba(45,94,94,0.06)" }} />
+              ))}</>
+            )}
+
+            {!eventsLoading && events.length === 0 && (
+              <div className="text-center py-16">
+                <div className="text-5xl mb-4">🌅</div>
+                <p className="font-bold text-teal text-lg">Пока нет событий</p>
+                <p className="text-sm text-muted-foreground mt-1 mb-6">Станьте первым — создайте событие и найдите компанию</p>
+                <button onClick={() => navigate("create")} className="btn-primary inline-flex items-center gap-2">
+                  <Icon name="Plus" size={16} /> Создать событие
+                </button>
+              </div>
+            )}
+
+            {events.map((event, idx) => (
               <div
                 key={event.id}
                 className="animate-card-enter"
                 style={{ animationDelay: `${idx * 80}ms`, animationFillMode: "both", opacity: 0 }}
-                onClick={() => { setSelectedEvent(event); navigate("detail"); }}
+                onClick={() => { loadEventDetail(event.id); navigate("detail"); }}
               >
-                <EventCard
-                  event={event}
-                  responded={respondedEvents.has(event.id)}
-                  onRespond={() => { setSelectedEvent(event); setShowRespondModal(true); }}
-                />
+                <EventCard event={event} onRespond={() => { setEventDetail(event); setShowRespondModal(true); }} />
               </div>
             ))}
             <div style={{ height: 80 }} />
@@ -549,34 +648,31 @@ export default function App() {
       )}
 
       {/* ── EVENT DETAIL ──────────────────────────────────── */}
-      {screen === "detail" && selectedEvent && (
+      {screen === "detail" && (
         <div className="app-screen animate-slide-up">
+          {eventDetailLoading && !eventDetail && (
+            <div className="flex-1 flex items-center justify-center"><div className="text-4xl animate-pulse">☕</div></div>
+          )}
+          {eventDetail && (
+          <>
           <div className="flex-1 overflow-y-auto scroll-hidden">
             <div className="relative" style={{ height: 300 }}>
-              <img src={selectedEvent.image} alt={selectedEvent.title} className="w-full h-full object-cover" />
-              <div style={{
-                position: "absolute", inset: 0,
-                background: "linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.6) 100%)"
-              }} />
-              <button
-                onClick={() => navigate("feed", "feed")}
-                className="absolute top-5 left-5 w-10 h-10 rounded-2xl flex items-center justify-center"
-                style={{ background: "rgba(255,255,255,0.2)", backdropFilter: "blur(10px)" }}
-              >
+              {eventDetail.photo_url ? (
+                <img src={eventDetail.photo_url} alt={eventDetail.title} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #2D5E5E, #3D7A7A)" }}>
+                  <span style={{ fontSize: 64, opacity: 0.3 }}>{CATEGORY_EMOJIS[eventDetail.category] || "✨"}</span>
+                </div>
+              )}
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.6) 100%)" }} />
+              <button onClick={() => navigate("feed", "feed")} className="absolute top-5 left-5 w-10 h-10 rounded-2xl flex items-center justify-center" style={{ background: "rgba(255,255,255,0.2)", backdropFilter: "blur(10px)" }}>
                 <Icon name="ChevronLeft" size={20} className="text-white" />
               </button>
-              <button
-                className="absolute top-5 right-5 w-10 h-10 rounded-2xl flex items-center justify-center"
-                style={{ background: "rgba(255,255,255,0.2)", backdropFilter: "blur(10px)" }}
-              >
-                <Icon name="Share2" size={18} className="text-white" />
-              </button>
               <div className="absolute bottom-0 left-0 right-0 p-5">
-                <span className={`goal-badge ${GOAL_LABELS[selectedEvent.goal].className} mb-2 inline-block`}
-                  style={{ background: "rgba(255,255,255,0.9)" }}>
-                  {GOAL_LABELS[selectedEvent.goal].label}
+                <span className={`goal-badge ${GOAL_LABELS[eventDetail.goal as Goal]?.className || "goal-friends"} mb-2 inline-block`} style={{ background: "rgba(255,255,255,0.9)" }}>
+                  {GOAL_LABELS[eventDetail.goal as Goal]?.label || "Компания"}
                 </span>
-                <h1 className="text-white font-bold text-2xl leading-tight">{selectedEvent.title}</h1>
+                <h1 className="text-white font-bold text-2xl leading-tight">{eventDetail.title}</h1>
               </div>
             </div>
 
@@ -586,61 +682,50 @@ export default function App() {
                   <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "rgba(232,106,61,0.12)" }}>
                     <Icon name="Clock" size={16} className="text-mandarin" />
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Время</p>
-                    <p className="text-sm font-semibold text-teal">{selectedEvent.time}</p>
-                  </div>
+                  <div><p className="text-xs text-muted-foreground">Время</p><p className="text-sm font-semibold text-teal">{formatEventDate(eventDetail.event_date)}</p></div>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "rgba(45,94,94,0.08)" }}>
                     <Icon name="MapPin" size={16} className="text-teal" />
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Место</p>
-                    <p className="text-sm font-semibold text-teal">{selectedEvent.place}</p>
-                  </div>
+                  <div><p className="text-xs text-muted-foreground">Место</p><p className="text-sm font-semibold text-teal">{eventDetail.place}</p></div>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "rgba(45,94,94,0.08)" }}>
                     <Icon name="Users" size={16} className="text-teal" />
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Участники</p>
-                    <p className="text-sm font-semibold text-teal">{selectedEvent.joined} из {selectedEvent.maxPeople}</p>
-                  </div>
+                  <div><p className="text-xs text-muted-foreground">Участники</p><p className="text-sm font-semibold text-teal">{eventDetail.joined} из {eventDetail.max_people}</p></div>
                 </div>
               </div>
 
               <div className="card-float p-4">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Организатор</p>
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-white text-lg"
-                    style={{ background: "linear-gradient(135deg, #2D5E5E, #3D7A7A)" }}>
-                    {selectedEvent.creator.avatar}
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-white text-lg" style={{ background: "linear-gradient(135deg, #2D5E5E, #3D7A7A)" }}>
+                    {eventDetail.creator?.name?.[0] || "?"}
                   </div>
                   <div>
-                    <p className="font-bold text-teal">{selectedEvent.creator.name}, {selectedEvent.creator.age}</p>
-                    <span className={`goal-badge ${GOAL_LABELS[selectedEvent.goal].className}`}>
-                      {GOAL_LABELS[selectedEvent.goal].label}
-                    </span>
+                    <p className="font-bold text-teal">{eventDetail.creator?.name}{eventDetail.creator?.age ? `, ${eventDetail.creator.age}` : ""}</p>
+                    <span className={`goal-badge ${GOAL_LABELS[eventDetail.goal as Goal]?.className || "goal-friends"}`}>{GOAL_LABELS[eventDetail.goal as Goal]?.label || "Компания"}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="card-float p-4">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Описание</p>
-                <p className="text-sm leading-relaxed text-teal">{selectedEvent.description}</p>
-              </div>
+              {eventDetail.description && (
+                <div className="card-float p-4">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Описание</p>
+                  <p className="text-sm leading-relaxed text-teal">{eventDetail.description}</p>
+                </div>
+              )}
 
-              {selectedEvent.participants.length > 0 && (
+              {eventDetail.participants?.length > 0 && (
                 <div className="card-float p-4">
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Уже участвуют</p>
                   <div className="flex gap-2">
-                    {selectedEvent.participants.map((p, i) => (
+                    {eventDetail.participants.map((p: { name: string; photo_url?: string }, i: number) => (
                       <div key={i} className="flex flex-col items-center gap-1">
-                        <div className="w-10 h-10 rounded-2xl flex items-center justify-center font-semibold text-white"
-                          style={{ background: "linear-gradient(135deg, #E86A3D, #c4562f)" }}>
-                          {p.avatar}
+                        <div className="w-10 h-10 rounded-2xl flex items-center justify-center font-semibold text-white" style={{ background: "linear-gradient(135deg, #E86A3D, #c4562f)" }}>
+                          {p.name?.[0] || "?"}
                         </div>
                         <p className="text-xs text-muted-foreground">{p.name}</p>
                       </div>
@@ -648,35 +733,31 @@ export default function App() {
                   </div>
                 </div>
               )}
-
               <div style={{ height: 100 }} />
             </div>
           </div>
 
           <div className="flex-shrink-0 px-5 py-4" style={{ background: "var(--color-ivory)", borderTop: "1px solid rgba(45,94,94,0.08)" }}>
-            {respondedEvents.has(selectedEvent.id) ? (
+            {eventDetail.is_mine ? (
+              <div className="rounded-2xl px-4 py-3.5 text-center text-sm font-semibold" style={{ background: "rgba(45,94,94,0.08)", color: "var(--color-teal)" }}>Это ваше событие</div>
+            ) : eventDetail.my_status === "accepted" ? (
+              <div className="rounded-2xl px-4 py-3.5 text-center text-sm font-semibold text-white" style={{ background: "var(--color-teal)" }}>Вы участвуете ✓</div>
+            ) : eventDetail.my_status === "pending" ? (
               <div className="flex gap-3">
-                <div className="flex-1 rounded-2xl px-4 py-3.5 text-center text-sm font-semibold" style={{ background: "rgba(45,94,94,0.08)", color: "var(--color-teal)" }}>
-                  ⏳ Ожидает подтверждения
-                </div>
-                <button className="px-4 py-3.5 rounded-2xl text-sm font-medium text-red-400" style={{ background: "rgba(239,68,68,0.08)" }}>
-                  Отменить
-                </button>
+                <div className="flex-1 rounded-2xl px-4 py-3.5 text-center text-sm font-semibold" style={{ background: "rgba(45,94,94,0.08)", color: "var(--color-teal)" }}>⏳ Ожидает</div>
+                <button onClick={() => handleCancelResponse(eventDetail.id)} className="px-4 py-3.5 rounded-2xl text-sm font-medium text-red-400" style={{ background: "rgba(239,68,68,0.08)" }}>Отменить</button>
               </div>
             ) : (
-              <button
-                className="btn-primary w-full py-4 text-base"
-                onClick={() => setShowRespondModal(true)}
-              >
-                Откликнуться ✨
-              </button>
+              <button className="btn-primary w-full py-4 text-base" onClick={() => setShowRespondModal(true)}>Откликнуться ✨</button>
             )}
           </div>
+          </>
+          )}
         </div>
       )}
 
       {/* ── RESPOND MODAL ─────────────────────────────────── */}
-      {showRespondModal && selectedEvent && (
+      {showRespondModal && eventDetail && (
         <div
           className="absolute inset-0 z-50 flex items-end animate-fade-in"
           style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}
@@ -703,9 +784,10 @@ export default function App() {
               <button
                 className="btn-primary flex-1"
                 style={{ opacity: respondMessage.trim() ? 1 : 0.5 }}
-                onClick={() => handleRespond(selectedEvent.id)}
+                disabled={respondLoading}
+                onClick={() => handleRespond(eventDetail.id)}
               >
-                Отправить
+                {respondLoading ? "..." : "Отправить"}
               </button>
             </div>
           </div>
@@ -723,49 +805,31 @@ export default function App() {
           </div>
 
           <div className="flex-1 overflow-y-auto scroll-hidden px-5 pb-4 space-y-4">
-            <div
-              className="rounded-3xl overflow-hidden flex items-center justify-center cursor-pointer"
-              style={{ height: 180, background: "rgba(45,94,94,0.06)", border: "2px dashed rgba(45,94,94,0.2)" }}
-            >
-              <div className="text-center">
-                <Icon name="ImagePlus" size={32} className="text-teal mx-auto mb-2" />
-                <p className="text-sm font-medium text-teal">Добавить фото обложки</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Это первое, что увидят люди</p>
-              </div>
-            </div>
-
             <div className="space-y-3">
-              {[
-                { label: "Название события", placeholder: "Например: Утренний кофе в кафе на Марксе", type: "text" },
-                { label: "Описание", placeholder: "Расскажите о себе и о том, что планируете", type: "textarea" },
-                { label: "Место", placeholder: "Адрес или название места", type: "text" },
-                { label: "Дата и время", placeholder: "Когда встречаемся?", type: "datetime-local" },
-              ].map(f => (
-                <div key={f.label}>
-                  <label className="text-xs font-semibold text-teal mb-1.5 block uppercase tracking-wide">{f.label}</label>
-                  {f.type === "textarea" ? (
-                    <textarea
-                      placeholder={f.placeholder}
-                      className="w-full card-float px-4 py-3.5 text-sm font-medium outline-none resize-none bg-white"
-                      style={{ borderRadius: 20, minHeight: 80 }}
-                      rows={3}
-                    />
-                  ) : (
-                    <input
-                      type={f.type}
-                      placeholder={f.placeholder}
-                      className="w-full card-float px-4 py-3.5 text-sm font-medium outline-none bg-white"
-                      style={{ borderRadius: 20 }}
-                    />
-                  )}
-                </div>
-              ))}
+              <div>
+                <label className="text-xs font-semibold text-teal mb-1.5 block uppercase tracking-wide">Название события</label>
+                <input type="text" placeholder="Например: Утренний кофе в кафе на Марксе" value={createTitle} onChange={e => setCreateTitle(e.target.value)} className="w-full card-float px-4 py-3.5 text-sm font-medium outline-none bg-white" style={{ borderRadius: 20 }} />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-teal mb-1.5 block uppercase tracking-wide">Описание</label>
+                <textarea placeholder="Расскажите о себе и о том, что планируете" value={createDescription} onChange={e => setCreateDescription(e.target.value)} className="w-full card-float px-4 py-3.5 text-sm font-medium outline-none resize-none bg-white" style={{ borderRadius: 20, minHeight: 80 }} rows={3} />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-teal mb-1.5 block uppercase tracking-wide">Место</label>
+                <input type="text" placeholder="Адрес или название места" value={createPlace} onChange={e => setCreatePlace(e.target.value)} className="w-full card-float px-4 py-3.5 text-sm font-medium outline-none bg-white" style={{ borderRadius: 20 }} />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-teal mb-1.5 block uppercase tracking-wide">Дата и время</label>
+                <input type="datetime-local" value={createDate} onChange={e => setCreateDate(e.target.value)} className="w-full card-float px-4 py-3.5 text-sm font-medium outline-none bg-white" style={{ borderRadius: 20 }} />
+              </div>
 
               <div>
                 <label className="text-xs font-semibold text-teal mb-1.5 block uppercase tracking-wide">Категория</label>
                 <div className="flex flex-wrap gap-2">
-                  {["Еда и напитки", "Природа", "Искусство", "Спорт", "Игры", "Музыка", "Кино"].map(c => (
-                    <button key={c} className="chip chip-inactive text-xs">{c}</button>
+                  {EVENT_CATEGORIES.map(c => (
+                    <button key={c} onClick={() => setCreateCategory(c)} className={`chip text-xs ${createCategory === c ? "chip-active" : "chip-inactive"}`}>
+                      {CATEGORY_EMOJIS[c] || ""} {c}
+                    </button>
                   ))}
                 </div>
               </div>
@@ -774,17 +838,8 @@ export default function App() {
                 <label className="text-xs font-semibold text-teal mb-1.5 block uppercase tracking-wide">Цель встречи</label>
                 <div className="flex gap-2">
                   {(["couple", "friends", "company"] as Goal[]).map(g => (
-                    <button
-                      key={g}
-                      onClick={() => setSelectedGoal(g)}
-                      className="flex-1 py-2.5 rounded-2xl text-xs font-semibold transition-all"
-                      style={{
-                        background: selectedGoal === g
-                          ? g === "couple" ? "var(--color-mandarin)" : "var(--color-teal)"
-                          : "rgba(45,94,94,0.08)",
-                        color: selectedGoal === g ? "white" : "var(--color-teal)"
-                      }}
-                    >
+                    <button key={g} onClick={() => setCreateGoal(g)} className="flex-1 py-2.5 rounded-2xl text-xs font-semibold transition-all"
+                      style={{ background: createGoal === g ? (g === "couple" ? "var(--color-mandarin)" : "var(--color-teal)") : "rgba(45,94,94,0.08)", color: createGoal === g ? "white" : "var(--color-teal)" }}>
                       {GOAL_LABELS[g].label}
                     </button>
                   ))}
@@ -795,18 +850,19 @@ export default function App() {
                 <label className="text-xs font-semibold text-teal mb-1.5 block uppercase tracking-wide">Максимум участников</label>
                 <div className="flex gap-2">
                   {[2, 3, 4, 5, 6, 10].map(n => (
-                    <button key={n} className="w-10 h-10 rounded-xl text-sm font-bold chip chip-inactive">{n}</button>
+                    <button key={n} onClick={() => setCreateMaxPeople(n)} className={`w-10 h-10 rounded-xl text-sm font-bold chip ${createMaxPeople === n ? "chip-active" : "chip-inactive"}`}>{n}</button>
                   ))}
                 </div>
               </div>
             </div>
 
+            {authError && <p className="text-xs text-red-500 text-center">{authError}</p>}
             <div style={{ height: 80 }} />
           </div>
 
           <div className="flex-shrink-0 px-5 py-4" style={{ background: "var(--color-ivory)", borderTop: "1px solid rgba(45,94,94,0.08)" }}>
-            <button className="btn-primary w-full py-4 text-base" onClick={() => navigate("feed", "feed")}>
-              Опубликовать событие
+            <button className="btn-primary w-full py-4 text-base" disabled={!!createLoading} onClick={handleCreateEvent}>
+              {createLoading ? "Публикуем..." : "Опубликовать событие"}
             </button>
           </div>
         </div>
@@ -925,11 +981,11 @@ export default function App() {
                 <div className="flex items-end gap-4 w-full">
                   <div className="w-20 h-20 rounded-3xl flex items-center justify-center font-bold text-3xl text-white"
                     style={{ background: "rgba(255,255,255,0.2)", backdropFilter: "blur(10px)", border: "3px solid rgba(255,255,255,0.4)" }}>
-                    А
+                    {userProfile?.name?.[0]?.toUpperCase() || userName?.[0]?.toUpperCase() || "?"}
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-white font-bold text-xl">Алексей, 27</h2>
-                    <p className="text-white text-xs opacity-80">Москва · На Поводе с марта 2026</p>
+                    <h2 className="text-white font-bold text-xl">{userProfile?.name || userName || "Профиль"}</h2>
+                    <p className="text-white text-xs opacity-80">{userProfile?.city || "Москва"}</p>
                   </div>
                   <button className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(255,255,255,0.2)" }}>
                     <Icon name="Settings" size={18} className="text-white" />
@@ -941,9 +997,9 @@ export default function App() {
             <div className="px-5 py-4 space-y-4">
               <div className="card-float p-4 grid grid-cols-3 gap-0">
                 {[
-                  { label: "Создал", val: 2 },
-                  { label: "Участвовал", val: 5 },
-                  { label: "Откликов", val: 12 },
+                  { label: "Создал", val: myEvents.length },
+                  { label: "Участвую", val: participatingEvents.length },
+                  { label: "Заявки", val: myEvents.reduce((s, e) => s + (e.pending_responses || 0), 0) },
                 ].map((s, i) => (
                   <div key={s.label} className="text-center" style={{ borderRight: i < 2 ? "1px solid rgba(45,94,94,0.1)" : "none" }}>
                     <p className="text-2xl font-bold text-teal">{s.val}</p>
@@ -952,53 +1008,74 @@ export default function App() {
                 ))}
               </div>
 
-              <div className="card-float p-4">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Интересы</p>
-                <div className="flex flex-wrap gap-2">
-                  {["☕ Кофе", "🎵 Музыка", "📚 Книги", "🌿 Природа"].map(i => (
-                    <span key={i} className="chip chip-inactive text-xs">{i}</span>
-                  ))}
+              {(userProfile?.interests?.length > 0) && (
+                <div className="card-float p-4">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Интересы</p>
+                  <div className="flex flex-wrap gap-2">
+                    {userProfile.interests.map((i: string) => (<span key={i} className="chip chip-inactive text-xs">{i}</span>))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="card-float p-4">
                 <div className="flex items-center justify-between mb-3">
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Мои события</p>
-                  <button onClick={() => navigate("requests")} className="text-xs font-semibold text-mandarin">Заявки →</button>
+                  {myEvents.some(e => e.pending_responses > 0) && (
+                    <button onClick={() => { navigate("requests"); }} className="text-xs font-semibold text-mandarin">Заявки →</button>
+                  )}
                 </div>
-                <div className="space-y-3">
-                  {EVENTS.slice(0, 2).map(e => (
-                    <div
-                      key={e.id}
-                      className="flex items-center gap-3 cursor-pointer"
-                      onClick={() => { setSelectedEvent(e); navigate("detail"); }}
-                    >
-                      <img src={e.image} className="w-12 h-12 rounded-2xl object-cover flex-shrink-0" alt={e.title} />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-teal text-sm truncate">{e.title}</p>
-                        <p className="text-xs text-muted-foreground">{e.time}</p>
+                {myEvents.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Пока нет событий</p>
+                ) : (
+                  <div className="space-y-3">
+                    {myEvents.map(e => (
+                      <div key={e.id} className="flex items-center gap-3 cursor-pointer" onClick={() => { loadEventDetail(e.id); navigate("detail"); }}>
+                        {e.photo_url ? (
+                          <img src={e.photo_url} className="w-12 h-12 rounded-2xl object-cover flex-shrink-0" alt={e.title} />
+                        ) : (
+                          <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #2D5E5E, #3D7A7A)" }}>
+                            <span className="text-lg">{CATEGORY_EMOJIS[e.category] || "✨"}</span>
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-teal text-sm truncate">{e.title}</p>
+                          <p className="text-xs text-muted-foreground">{formatEventDate(e.event_date)}</p>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          {e.pending_responses > 0 && (
+                            <div className="w-5 h-5 rounded-full flex items-center justify-center text-xs text-white font-bold" style={{ background: "var(--color-mandarin)" }}>{e.pending_responses}</div>
+                          )}
+                          <div className="text-xs font-semibold px-2 py-1 rounded-xl" style={{ background: "rgba(45,94,94,0.08)", color: "var(--color-teal)" }}>{e.joined}/{e.max_people}</div>
+                        </div>
                       </div>
-                      <div className="text-xs font-semibold px-2 py-1 rounded-xl" style={{ background: "rgba(45,94,94,0.08)", color: "var(--color-teal)" }}>
-                        {e.joined}/{e.maxPeople}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="card-float p-4">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Участвую</p>
-                <div className="space-y-3">
-                  {EVENTS.slice(2, 4).map(e => (
-                    <div key={e.id} className="flex items-center gap-3">
-                      <img src={e.image} className="w-12 h-12 rounded-2xl object-cover flex-shrink-0" alt={e.title} />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-teal text-sm truncate">{e.title}</p>
-                        <p className="text-xs text-muted-foreground">{e.time}</p>
+                {participatingEvents.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Откликнитесь на событие из ленты</p>
+                ) : (
+                  <div className="space-y-3">
+                    {participatingEvents.map(e => (
+                      <div key={e.id} className="flex items-center gap-3 cursor-pointer" onClick={() => { loadEventDetail(e.id); navigate("detail"); }}>
+                        {e.photo_url ? (
+                          <img src={e.photo_url} className="w-12 h-12 rounded-2xl object-cover flex-shrink-0" alt={e.title} />
+                        ) : (
+                          <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #E86A3D, #c4562f)" }}>
+                            <span className="text-lg">{CATEGORY_EMOJIS[e.category] || "✨"}</span>
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-teal text-sm truncate">{e.title}</p>
+                          <p className="text-xs text-muted-foreground">{formatEventDate(e.event_date)}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <button
@@ -1029,43 +1106,16 @@ export default function App() {
           </div>
 
           <div className="flex-1 overflow-y-auto scroll-hidden px-5 space-y-4 pb-4">
-            <div className="card-float p-4">
-              <div className="flex items-center gap-3 mb-4">
-                <img src={IMAGES.cafe} className="w-12 h-12 rounded-2xl object-cover" alt="Event" />
-                <div>
-                  <p className="font-bold text-teal text-sm">Завтрак в любимом кафе</p>
-                  <p className="text-xs text-muted-foreground">Сегодня, 10:00</p>
-                </div>
+            {myEvents.filter(e => e.pending_responses > 0).length === 0 && (
+              <div className="text-center py-16">
+                <div className="text-4xl mb-3">📭</div>
+                <p className="font-bold text-teal">Пока нет заявок</p>
+                <p className="text-sm text-muted-foreground mt-1">Как только кто-то откликнется — вы увидите это здесь</p>
               </div>
-
-              <div className="space-y-3">
-                {[
-                  { name: "Вика", age: 24, avatar: "В", msg: "Привет! Очень хочу познакомиться, обожаю уютные завтраки ☕", color: "#E86A3D" },
-                  { name: "Ира", age: 28, avatar: "И", msg: "Была бы рада составить компанию. Люблю долгие разговоры за кофе", color: "#2D5E5E" },
-                ].map((a, i) => (
-                  <div key={i} className="rounded-2xl p-3" style={{ background: "rgba(45,94,94,0.04)" }}>
-                    <div className="flex items-start gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-white flex-shrink-0"
-                        style={{ background: a.color }}>
-                        {a.avatar}
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-bold text-teal text-sm">{a.name}, {a.age}</p>
-                        <p className="text-xs leading-relaxed mt-0.5 text-muted-foreground">{a.msg}</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <button className="flex-1 py-2 rounded-xl text-xs font-semibold text-white" style={{ background: "var(--color-teal)" }}>
-                        ✓ Принять
-                      </button>
-                      <button className="flex-1 py-2 rounded-xl text-xs font-semibold text-red-400" style={{ background: "rgba(239,68,68,0.08)" }}>
-                        ✕ Отклонить
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            )}
+            {myEvents.filter(e => e.pending_responses > 0).map(ev => (
+              <RequestsForEvent key={ev.id} event={ev} token={getToken()} onUpdate={() => { loadMyEvents(); }} />
+            ))}
           </div>
         </div>
       )}
@@ -1338,67 +1388,118 @@ function WelcomeScreen({ onRegister, onLogin }: { onRegister: () => void; onLogi
   );
 }
 
-function EventCard({ event, responded, onRespond }: {
-  event: typeof EVENTS[0],
-  responded: boolean,
-  onRespond: () => void,
-}) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function EventCard({ event, onRespond }: { event: any, onRespond: () => void }) {
+  const goal = event.goal as Goal;
+  const statusLabel = event.my_status === "pending" ? "Ожидает" : event.my_status === "accepted" ? "Участвую" : null;
   return (
     <div className="rounded-3xl overflow-hidden" style={{ boxShadow: "0 6px 28px rgba(45,94,94,0.1)" }}>
       <div className="relative" style={{ height: 220 }}>
-        <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
-        <div style={{
-          position: "absolute", inset: 0,
-          background: "linear-gradient(to bottom, rgba(0,0,0,0) 40%, rgba(0,0,0,0.55) 100%)"
-        }} />
+        {event.photo_url ? (
+          <img src={event.photo_url} alt={event.title} className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #2D5E5E, #3D7A7A)" }}>
+            <span style={{ fontSize: 48, opacity: 0.3 }}>{CATEGORY_EMOJIS[event.category] || "✨"}</span>
+          </div>
+        )}
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0) 40%, rgba(0,0,0,0.55) 100%)" }} />
         <div className="absolute top-3 left-3">
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-xl text-white"
-            style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(8px)" }}>
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-xl text-white" style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(8px)" }}>
             {event.category}
-          </span>
-        </div>
-        <div className="absolute top-3 right-3">
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-xl text-white flex items-center gap-1"
-            style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(8px)" }}>
-            <Icon name="MapPin" size={10} />
-            {event.distance}
           </span>
         </div>
         <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
           <div>
             <h3 className="text-white font-bold text-lg leading-tight">{event.title}</h3>
-            <p className="text-white text-xs opacity-80 mt-0.5">{event.time}</p>
+            <p className="text-white text-xs opacity-80 mt-0.5">{formatEventDate(event.event_date)}</p>
           </div>
         </div>
       </div>
 
       <div className="bg-white px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-sm text-white"
-            style={{ background: "linear-gradient(135deg, #2D5E5E, #3D7A7A)" }}>
-            {event.creator.avatar}
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-sm text-white" style={{ background: "linear-gradient(135deg, #2D5E5E, #3D7A7A)" }}>
+            {event.creator?.name?.[0] || "?"}
           </div>
           <div>
-            <p className="font-semibold text-teal text-xs">{event.creator.name}, {event.creator.age}</p>
-            <p className="text-xs text-muted-foreground">{event.place}</p>
+            <p className="font-semibold text-teal text-xs">{event.creator?.name}{event.creator?.age ? `, ${event.creator.age}` : ""}</p>
+            <p className="text-xs text-muted-foreground truncate" style={{ maxWidth: 140 }}>{event.place}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className={`goal-badge ${GOAL_LABELS[event.goal].className} text-xs`}>
-            {GOAL_LABELS[event.goal].label}
+          <span className={`goal-badge ${GOAL_LABELS[goal]?.className || "goal-friends"} text-xs`}>
+            {GOAL_LABELS[goal]?.label || "Компания"}
           </span>
-          <button
-            onClick={e => { e.stopPropagation(); onRespond(); }}
-            className="py-2 px-4 rounded-2xl text-xs font-bold transition-all"
-            style={{
-              background: responded ? "rgba(45,94,94,0.15)" : "var(--color-mandarin)",
-              color: responded ? "var(--color-teal)" : "white",
-              boxShadow: responded ? "none" : "0 3px 12px rgba(232,106,61,0.35)"
-            }}
-          >
-            {responded ? "Ожидает" : "Пойду"}
-          </button>
+          {!event.is_mine && (
+            <button
+              onClick={e => { e.stopPropagation(); onRespond(); }}
+              className="py-2 px-4 rounded-2xl text-xs font-bold transition-all"
+              style={{
+                background: statusLabel ? "rgba(45,94,94,0.15)" : "var(--color-mandarin)",
+                color: statusLabel ? "var(--color-teal)" : "white",
+                boxShadow: statusLabel ? "none" : "0 3px 12px rgba(232,106,61,0.35)"
+              }}
+            >
+              {statusLabel || "Пойду"}
+            </button>
+          )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function RequestsForEvent({ event, token, onUpdate }: { event: any, token: string, onUpdate: () => void }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [responses, setResponses] = useState<any[]>([]);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    fetch(`${EVENTS_API}/event/${event.id}/responses`, { headers: { "X-Auth-Token": token } })
+      .then(r => r.json())
+      .then(data => { if (data.responses) setResponses(data.responses); setLoaded(true); })
+      .catch(() => setLoaded(true));
+  }, [event.id, token]);
+
+  const handleAction = async (respId: number, action: "accept" | "reject") => {
+    await fetch(`${EVENTS_API}/response/${respId}/${action}`, { method: "POST", headers: { "X-Auth-Token": token } });
+    setResponses(prev => prev.filter(r => r.id !== respId));
+    onUpdate();
+  };
+
+  if (!loaded) return <div className="text-center py-4 text-muted-foreground text-sm">Загрузка...</div>;
+  if (responses.length === 0) return null;
+
+  return (
+    <div className="card-float p-4">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #2D5E5E, #3D7A7A)" }}>
+          <span className="text-sm">{CATEGORY_EMOJIS[event.category] || "✨"}</span>
+        </div>
+        <div>
+          <p className="font-bold text-teal text-sm">{event.title}</p>
+          <p className="text-xs text-muted-foreground">{formatEventDate(event.event_date)}</p>
+        </div>
+      </div>
+      <div className="space-y-3">
+        {responses.map(r => (
+          <div key={r.id} className="rounded-2xl p-3" style={{ background: "rgba(45,94,94,0.04)" }}>
+            <div className="flex items-start gap-3 mb-3">
+              <div className="w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-white flex-shrink-0" style={{ background: "var(--color-mandarin)" }}>
+                {r.user?.name?.[0] || "?"}
+              </div>
+              <div className="flex-1">
+                <p className="font-bold text-teal text-sm">{r.user?.name}{r.user?.age ? `, ${r.user.age}` : ""}</p>
+                <p className="text-xs leading-relaxed mt-0.5 text-muted-foreground">{r.message}</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => handleAction(r.id, "accept")} className="flex-1 py-2 rounded-xl text-xs font-semibold text-white" style={{ background: "var(--color-teal)" }}>✓ Принять</button>
+              <button onClick={() => handleAction(r.id, "reject")} className="flex-1 py-2 rounded-xl text-xs font-semibold text-red-400" style={{ background: "rgba(239,68,68,0.08)" }}>✕ Отклонить</button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

@@ -1,0 +1,37 @@
+{
+  "tests": [
+    {
+      "name": "Health check",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {"service": "string"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get feed",
+      "method": "GET",
+      "path": "/feed",
+      "expectedStatus": 200,
+      "expectedBody": {"events": []},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Create event - unauthorized",
+      "method": "POST",
+      "path": "/create",
+      "body": {"title": "Test"},
+      "expectedStatus": 401,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get my events - unauthorized",
+      "method": "GET",
+      "path": "/my",
+      "expectedStatus": 401,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
+    }
+  ]
+}
