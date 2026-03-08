@@ -1,5 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Icon from "@/components/ui/icon";
+
+const API_URL = "https://functions.poehali.dev/dcc4a778-17c7-45ec-852d-e33e9dfca067";
 
 const IMAGES = {
   cafe: "https://cdn.poehali.dev/projects/7943bd27-d167-499f-a07b-65cc9421d49b/files/7eb6cfed-5273-4431-b132-b70f6e94f58f.jpg",
@@ -138,15 +140,166 @@ export default function App() {
   const [codeSent, setCodeSent] = useState(false);
   const [userName, setUserName] = useState("");
   const [userBirthday, setUserBirthday] = useState("");
+  const [authToken, setAuthToken] = useState("");
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState("");
+  const [debugCode, setDebugCode] = useState("");
+  const [appReady, setAppReady] = useState(false);
 
-  const navigate = (s: Screen, tab?: "feed" | "chats" | "profile") => {
+  // Check saved token on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("povod_token");
+    if (saved) {
+      setAuthToken(saved);
+      fetch(`${API_URL}/profile`, {
+        headers: { "X-Auth-Token": saved },
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data && data.name) {
+            setUserName(data.name);
+            setScreen("feed");
+            setActiveTab("feed");
+          } else if (data && !data.name) {
+            setScreen("onboarding-profile");
+          } else {
+            localStorage.removeItem("povod_token");
+            setAuthToken("");
+            setScreen("welcome");
+          }
+        })
+        .catch(() => {
+          localStorage.removeItem("povod_token");
+          setAuthToken("");
+          setScreen("welcome");
+        })
+        .finally(() => setAppReady(true));
+    } else {
+      setAppReady(true);
+    }
+  }, []);
+
+  const navigate = useCallback((s: Screen, tab?: "feed" | "chats" | "profile") => {
+    const needsAuth: Screen[] = ["feed", "chats", "profile"];
+    if (needsAuth.includes(s) && !authToken && !localStorage.getItem("povod_token")) {
+      setScreen("welcome");
+      return;
+    }
     setScreen(s);
     if (tab) setActiveTab(tab);
-  };
+  }, [authToken]);
 
   const handleTabPress = (tab: "feed" | "chats" | "profile") => {
+    if (!authToken && !localStorage.getItem("povod_token")) {
+      setScreen("welcome");
+      return;
+    }
     setActiveTab(tab);
     setScreen(tab === "feed" ? "feed" : tab === "chats" ? "chats" : "profile");
+  };
+
+  const handleSendCode = async () => {
+    setAuthError("");
+    setAuthLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/send-code`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: phone.replace(/\D/g, "") }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setCodeSent(true);
+        if (data.debug_code) setDebugCode(String(data.debug_code));
+      } else {
+        setAuthError(data.error || "Не удалось отправить код");
+      }
+    } catch {
+      setAuthError("Ошибка сети. Попробуйте ещё раз.");
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    setAuthError("");
+    setAuthLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/verify-code`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: phone.replace(/\D/g, ""), code }),
+      });
+      const data = await res.json();
+      if (data.ok && data.token) {
+        localStorage.setItem("povod_token", data.token);
+        setAuthToken(data.token);
+        setDebugCode("");
+        if (data.has_profile) {
+          setScreen("feed");
+          setActiveTab("feed");
+        } else {
+          setScreen("onboarding-profile");
+        }
+      } else {
+        setAuthError(data.error || "Неверный код");
+      }
+    } catch {
+      setAuthError("Ошибка сети. Попробуйте ещё раз.");
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    setAuthError("");
+    setAuthLoading(true);
+    try {
+      const token = authToken || localStorage.getItem("povod_token") || "";
+      const res = await fetch(`${API_URL}/profile`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Auth-Token": token,
+        },
+        body: JSON.stringify({
+          name: userName,
+          birthday: userBirthday,
+          interests: selectedInterests,
+          goal: selectedGoal,
+        }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setScreen("feed");
+        setActiveTab("feed");
+      } else {
+        setAuthError(data.error || "Не удалось сохранить профиль");
+      }
+    } catch {
+      setAuthError("Ошибка сети. Попробуйте ещё раз.");
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      const token = authToken || localStorage.getItem("povod_token") || "";
+      await fetch(`${API_URL}/logout`, {
+        method: "POST",
+        headers: { "X-Auth-Token": token },
+      });
+    } catch {
+      // ignore logout errors
+    }
+    localStorage.removeItem("povod_token");
+    setAuthToken("");
+    setCodeSent(false);
+    setCode("");
+    setPhone("");
+    setDebugCode("");
+    setScreen("welcome");
   };
 
   const handleRespond = (eventId: number) => {
@@ -176,8 +329,8 @@ export default function App() {
       {/* ── WELCOME SCREEN ─────────────────────────────────── */}
       {screen === "welcome" && (
         <WelcomeScreen
-          onRegister={() => navigate("onboarding-profile")}
-          onLogin={() => navigate("onboarding-phone")}
+          onRegister={() => { setAuthError(""); setScreen("onboarding-phone"); }}
+          onLogin={() => { setAuthError(""); setScreen("onboarding-phone"); }}
         />
       )}
 
@@ -226,19 +379,35 @@ export default function App() {
                   style={{ borderRadius: 20 }}
                   maxLength={6}
                 />
+                {debugCode && (
+                  <p className="text-xs text-muted-foreground text-center mt-2">
+                    Код для тестирования: <span className="font-bold text-teal">{debugCode}</span>
+                  </p>
+                )}
               </div>
             )}
 
+            {authError && (
+              <p className="text-xs text-red-500 text-center mb-2">{authError}</p>
+            )}
+
             {!codeSent ? (
-              <button className="btn-primary w-full mt-2" onClick={() => setCodeSent(true)}>
-                Получить код
+              <button
+                className="btn-primary w-full mt-2"
+                disabled={authLoading || !phone.trim()}
+                style={{ opacity: authLoading || !phone.trim() ? 0.5 : 1 }}
+                onClick={handleSendCode}
+              >
+                {authLoading ? "..." : "Получить код"}
               </button>
             ) : (
               <button
                 className="btn-primary w-full mt-2"
-                onClick={() => navigate("onboarding-profile")}
+                disabled={authLoading || !code.trim()}
+                style={{ opacity: authLoading || !code.trim() ? 0.5 : 1 }}
+                onClick={handleVerifyCode}
               >
-                Войти
+                {authLoading ? "..." : "Войти"}
               </button>
             )}
 
@@ -310,12 +479,17 @@ export default function App() {
               </div>
             </div>
 
+            {authError && (
+              <p className="text-xs text-red-500 text-center mb-3">{authError}</p>
+            )}
+
             <button
               className="btn-primary w-full"
-              style={{ opacity: userName && userBirthday && selectedInterests.length > 0 ? 1 : 0.5 }}
-              onClick={() => navigate("feed", "feed")}
+              disabled={authLoading || !userName || !userBirthday || selectedInterests.length === 0}
+              style={{ opacity: (userName && userBirthday && selectedInterests.length > 0 && !authLoading) ? 1 : 0.5 }}
+              onClick={handleSaveProfile}
             >
-              Начать 🎉
+              {authLoading ? "..." : "Начать"} 🎉
             </button>
           </div>
         </div>
@@ -827,7 +1001,11 @@ export default function App() {
                 </div>
               </div>
 
-              <button className="w-full py-3.5 rounded-2xl text-sm font-semibold text-red-400" style={{ background: "rgba(239,68,68,0.08)" }}>
+              <button
+                className="w-full py-3.5 rounded-2xl text-sm font-semibold text-red-400"
+                style={{ background: "rgba(239,68,68,0.08)" }}
+                onClick={handleLogout}
+              >
                 Выйти из аккаунта
               </button>
             </div>

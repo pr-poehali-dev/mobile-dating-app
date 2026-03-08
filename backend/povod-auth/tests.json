@@ -1,0 +1,47 @@
+{
+  "tests": [
+    {
+      "name": "Health check",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {"service": "string", "status": "string"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Send code - valid phone",
+      "method": "POST",
+      "path": "/send-code",
+      "body": {"phone": "9991234567"},
+      "expectedStatus": 200,
+      "expectedBody": {"ok": true},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Send code - invalid phone",
+      "method": "POST",
+      "path": "/send-code",
+      "body": {"phone": "123"},
+      "expectedStatus": 400,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Verify code - wrong code",
+      "method": "POST",
+      "path": "/verify-code",
+      "body": {"phone": "9991234567", "code": "000000"},
+      "expectedStatus": 400,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get profile - unauthorized",
+      "method": "GET",
+      "path": "/profile",
+      "expectedStatus": 401,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
+    }
+  ]
+}
